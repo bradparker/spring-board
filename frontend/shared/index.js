@@ -2,20 +2,18 @@ import React from 'react'
 import { Route } from 'react-router'
 import { Link } from 'react-router-dom'
 
-import initItems from './modules/Items'
+import {
+  Component as Items,
+  routes as items
+} from './modules/Items'
 
-const {
-  component: Items,
-  routes: items
-} = initItems({
-  mountAt: '/items'
-})
+const {keys} = Object
 
 const Home = () => (
   <p>Home</p>
 )
 
-const component = () => () => (
+export const Component = () => (
   <div>
     <nav>
       <Link to='/'>
@@ -31,14 +29,12 @@ const component = () => () => (
   </div>
 )
 
-const routes =  () => ({
-  home: {
-    pattern: '/'
-  },
-  items
-})
+const values = (obj) => (
+  keys(obj).map((key) => (
+    obj[key]
+  ))
+)
 
-export default () => ({
-  component: component(),
-  routes: routes()
-})
+export const routes = [
+  { path: '/', exact: true }
+].concat((values(items)))

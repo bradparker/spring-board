@@ -1,33 +1,39 @@
 import React from 'react'
 import { Route } from 'react-router'
 import { Link } from 'react-router-dom'
-import { join } from 'path'
 
-const routes = ({ mountAt }) => ({
+export const routes = {
   index: {
-    pattern: join(mountAt, '/')
+    path: '/items',
+    exact: true,
+    fetch () {
+      return Promise.resolve()
+    }
   },
   new: {
-    pattern: join(mountAt, '/new')
+    path: '/items/new',
+    exact: true
   },
   show: {
-    pattern: join(mountAt, '/:itemId')
+    path: '/items/:itemId',
+    exact: true
   },
   edit: {
-    pattern: join(mountAt, '/:itemId/edit')
+    path: '/items/:itemId/edit',
+    exact: true
   }
-})
+}
 
-const Index = ({ mountedAt = '' }) => (
+const Index = () => (
   <div>
     <p>Items</p>
-    <Link to={join(mountedAt, '/new')}>
+    <Link to='/items/new'>
       Create item
     </Link>
 
     <ul>
-      <li><Link to={join(mountedAt, '/1')}>Item 1</Link></li>
-      <li><Link to={join(mountedAt, '/2')}>Item 2</Link></li>
+      <li><Link to='/items/1'>Item 1</Link></li>
+      <li><Link to='/items/2'>Item 2</Link></li>
     </ul>
   </div>
 )
@@ -44,10 +50,10 @@ const New = () => (
   </form>
 )
 
-const Show = ({ item, mountedAt }) => (
+const Show = ({ item }) => (
   <div>
     <p>Item {item.id}</p>
-    <Link to={join(mountedAt, `/${item.id}/edit`)}>
+    <Link to={`/items/${item.id}/edit`}>
       Edit
     </Link>
   </div>
@@ -65,38 +71,32 @@ const Edit = ({ item }) => (
   </form>
 )
 
-const component = ({ mountAt }) => {
-  const mountedRoutes = routes({ mountAt })
-  const { pattern: indexPattern } = mountedRoutes.index
-  const { pattern: newPattern } = mountedRoutes.new
-  const { pattern: showPattern } = mountedRoutes.show
-  const { pattern: editPattern } = mountedRoutes.edit
+export const Component = () => {
+  const {
+    index: indexRoute,
+    new: newRoute,
+    show: showRoute,
+    edit: editRoute
+  } = routes
 
-  return () => (
+  return (
     <div>
-      <Route path={indexPattern} exact render={() => (
-        <Index mountedAt={mountAt} />
+      <Route path={indexRoute.path} exact render={() => (
+        <Index />
       )} />
 
-      <Route path={newPattern} exact render={() => (
+      <Route path={newRoute.path} exact render={() => (
         <New />
       )} />
 
-      <Route path={showPattern} exact render={({ match }) => (
+      <Route path={showRoute.path} exact render={({ match }) => (
         match.params.itemId !== 'new' &&
-          <Show item={{ id: match.params.itemId }} mountedAt={mountAt} />
+          <Show item={{ id: match.params.itemId }} />
       )} />
 
-      <Route path={editPattern} render={({ match }) => (
+      <Route path={editRoute.path} exact render={({ match }) => (
         <Edit item={{ id: match.params.itemId }} />
       )} />
     </div>
   )
 }
-
-export default ({
-  mountAt = '/items'
-} = {}) => ({
-  component: component({ mountAt }),
-  routes: routes({ mountAt })
-})

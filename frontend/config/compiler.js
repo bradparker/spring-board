@@ -1,6 +1,6 @@
 const { join, resolve } = require('path')
 
-const dist = join(__dirname, 'dist')
+const dist = resolve(__dirname, '../dist')
 const context = resolve(__dirname, '../')
 
 const rules = [

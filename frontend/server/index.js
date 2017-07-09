@@ -2,7 +2,7 @@ import React from 'react'
 import { StaticRouter as Router, matchPath } from 'react-router'
 import { renderToString } from 'react-dom/server'
 import { join, extname } from 'path'
-import initApp from '../shared'
+import { Component as App, routes } from '../shared'
 
 const { keys, assign } = Object
 
@@ -30,31 +30,40 @@ const scripts = (publicPath, assets) => (
   )).join('')
 )
 
-const { component: App } = initApp()
-
 module.exports = (stats) => {
   const publicPath = stats.publicPath
   const assets = byExtension(extractAssets(stats))
   const scriptTags = scripts(publicPath, assets)
 
   return (req, res, next) => {
-    const content = renderToString(
-      <Router context={{}} location={req.url}>
-        <App />
-      </Router>
-    )
+    const requests = routes.reduce((acc, route) => {
+      const match = matchPath(req.url, route)
+      if (match && route.fetch) return acc.concat(route.fetch())
+      return acc
+    }, [])
 
-    res.send(
-      `<!doctype html>
-      <html>
-        <head>
-          <title>Hey, there</title>
-        </head>
-        <body>
-          <main id="app">${content}</main>
-          ${scriptTags}
-        </body>
-      </html>`
-    )
+    Promise.all(requests).then(() => {
+      const content = renderToString(
+        <Router context={{}} location={req.url}>
+          <App />
+        </Router>
+      )
+
+      res.send(
+        `<!doctype html>
+        <html>
+          <head>
+            <title>Hey, there</title>
+          </head>
+          <body>
+            <main id="app">${content}</main>
+            ${scriptTags}
+          </body>
+        </html>`
+      )
+    }).catch((error) => {
+      console.log(error)
+      res.send(error)
+    })
   }
 }
