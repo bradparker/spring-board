@@ -5,11 +5,11 @@ const app = express()
 if (process.env.NODE_ENV !== 'production') {
   const webpack = require('webpack')
   const webpackDevMiddleware = require('webpack-dev-middleware')
-  const webpackServerMiddleware = require('webpack-server-middleware')
+  const serverMiddleware = require('../modules/server/middleware')
   const config = require('./config/compiler.js')
   const compiler = webpack(config)
   app.use(webpackDevMiddleware(compiler))
-  app.use(webpackServerMiddleware(compiler))
+  app.use(serverMiddleware(compiler))
 } else {
   const DIST_DIR = path.join(__dirname, './dist')
   const SERVER_RENDERER_PATH = path.join(DIST_DIR)

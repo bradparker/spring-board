@@ -1,10 +1,10 @@
 import React from 'react'
-import { StaticRouter as Router, matchPath } from 'react-router'
-import { renderToString } from 'react-dom/server'
-import { join, extname } from 'path'
-import { Component as App, routes } from '../shared'
+import {StaticRouter as Router, matchPath} from 'react-router'
+import {renderToString} from 'react-dom/server'
+import {join, extname} from 'path'
+import {Component as App, routes} from '../shared'
 
-const { keys, assign } = Object
+const {keys, assign} = Object
 
 const flatMap = (array, func) => (
   array.reduce((result, element) => (
@@ -35,35 +35,37 @@ module.exports = (stats) => {
   const assets = byExtension(extractAssets(stats))
   const scriptTags = scripts(publicPath, assets)
 
-  return (req, res, next) => {
+  return (req) => {
     const requests = routes.reduce((acc, route) => {
       const match = matchPath(req.url, route)
       if (match && route.fetch) return acc.concat(route.fetch())
       return acc
     }, [])
 
-    Promise.all(requests).then(() => {
+    return Promise.all(requests).then(() => {
       const content = renderToString(
         <Router context={{}} location={req.url}>
           <App />
         </Router>
       )
 
-      res.send(
-        `<!doctype html>
-        <html>
-          <head>
-            <title>Hey, there</title>
-          </head>
-          <body>
-            <main id="app">${content}</main>
-            ${scriptTags}
-          </body>
-        </html>`
-      )
+      return ({
+        body: (
+          `<!doctype html>
+          <html>
+            <head>
+              <title>Hey, there</title>
+            </head>
+            <body>
+              <main id="app">${content}</main>
+              ${scriptTags}
+            </body>
+          </html>`
+        )
+      })
     }).catch((error) => {
       console.log(error)
-      res.send(error)
+      return Promise.reject(error)
     })
   }
 }
